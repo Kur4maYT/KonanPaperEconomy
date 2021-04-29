@@ -1,0 +1,62 @@
+const express = require('express');
+const app = express();
+app.get("/", (request, response) => {
+  const ping = new Date();
+  ping.setHours(ping.getHours() - 3);
+  console.log(`Estou online des dás ${ping.getUTCHours()}:${ping.getUTCMinutes()}:${ping.getUTCSeconds()}`);
+  response.sendStatus(200);
+});
+app.listen(process.env.PORT); // Recebe solicitações que o deixa online
+
+const Discord = require("discord.js"); //Conexão com a livraria Discord.js
+const client = new Discord.Client(); //Criação de um novo Client
+const config = require("./config.json"); //Pegando o prefixo do bot para respostas de comandos
+
+client.on("message", msg => {
+  if (msg.content === `<@${client.user.id}>`)
+    msg.channel.send("**Oi eu sou a KonanPaper, sou uma Bot focada em Economia se precisar mais de ajuda comigo digite: k$help**") // mobile
+})
+
+client.on("message", msg => {
+  if (msg.content === `<@!${client.user.id}>`)
+    msg.channel.send("**Oi eu sou a KonanPaper, sou uma Bot focada em Economia se precisar mais de ajuda comigo digite: k$help**") // pc
+})
+
+client.on("ready", () => {
+  let activities = [
+      `Meu Prefix é ${config.prefix}`,
+      `Utilize ${config.prefix}help para obter ajuda`,
+      `${client.guilds.cache.size} servidores!`,
+      `${client.channels.cache.size} canais!`,
+      `Meu Prefix é ${config.prefix}`
+    ],
+    i = 0;
+  setInterval( () => client.user.setActivity(`${activities[i++ % activities.length]}`, {
+        type: "WATCHING"
+      }), 1000 * 15); 
+  client.user
+      .setStatus("online")
+      .catch(console.error);
+console.log("Papai, To com Fome :D")
+});
+
+client.on('message', message => {
+     if (message.author.bot) return;
+     if (message.channel.type == 'dm') return;
+     if (!message.content.toLowerCase().startsWith(config.prefix.toLowerCase())) return;
+     if (message.content.startsWith(`<@!${client.user.id}>`) || message.content.startsWith(`<@${client.user.id}>`)) return;
+
+    const args = message.content
+        .trim().slice(config.prefix.length)
+        .split(/ +/g);
+    const command = args.shift().toLowerCase();
+
+    try {
+        const commandFile = require(`./commands/${command}.js`)
+        commandFile.run(client, message, args);
+    } catch (err) {
+    console.error('Erro:' + err);
+  }
+
+});
+client.login(process.env.TOKEN);
